@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <title>ទំនិញក្នុងប្រភេទ <%= collectionName %></title>
+    <style>
+        body { font-family: 'Khmer OS Siemreap', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        h1 { color: #333; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .price { color: #e74c3c; font-weight: bold; }
+        button { background: #27ae60; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #219653; }
+        input[type="number"] { width: 50px; padding: 5px; }
+        .back-link { display: inline-block; margin-bottom: 20px; text-decoration: none; color: #2980b9; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-link">⬅️ ត្រឡប់ក្រោយវិញ (គ្រប់ Collections)</a>
+    <h1>🛒 ប្រភេទ: <%= collectionName %></h1>
+    
+    <div class="grid">
+        <% items.forEach(item => { %>
+            <div class="card">
+                <h3><%= item.TitleKhmer || item.TitleEnglish %></h3>
+                <p>ស្តុកនៅសល់: <%= item.AvailableQty %></p>
+                <p class="price"><%= item.SalePrice %> <%= item.Currency %></p>
+                <form action="/buy" method="POST">
+                    <input type="hidden" name="title" value="<%= item.TitleKhmer || item.TitleEnglish %>">
+                    <input type="hidden" name="salePrice" value="<%= item.SalePrice %>">
+                    <input type="hidden" name="unitCost" value="<%= item.UnitCost %>">
+                    <label>ចំនួន: </label>
+                    <input type="number" name="qty" value="1" min="1" max="<%= item.AvailableQty %>">
+                    <button type="submit">ទិញឥឡូវនេះ</button>
+                </form>
+            </div>
+        <% }) %>
+    </div>
+</body>
+</html>

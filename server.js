@@ -27,42 +27,45 @@ const workbook = XLSX.readFile('items-inventory.xlsx');
 const sheetName = workbook.SheetNames[0];
 const itemsData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-// ១. ទំព័រដើម បង្ហាញបញ្ជី Collection Names ទាំងអស់
 app.get('/', (req, res) => {
-    // ទាញយកឈ្មោះ Collection មិនឱ្យជាន់គ្នា
-    const collections = [...new Set(itemsData.map(item => item.CollectionName))];
+    const search = req.query.search ? req.query.search.toLowerCase() : '';
+    let collections = [...new Set(itemsData.map(item => item.CollectionName))];
+    
+    if (search) {
+        const matchedItems = itemsData.filter(item => 
+            (item.TitleKhmer && item.TitleKhmer.toLowerCase().includes(search)) ||
+            (item.TitleEnglish && item.TitleEnglish.toLowerCase().includes(search))
+        );
+        return res.render('search-results', { search, matchedItems });
+    }
+
     res.render('index', { collections });
 });
 
-// ២. ទំព័របង្ហាញទំនិញតាម Collection នីមួយៗ
 app.get('/collection/:name', (req, res) => {
     const collectionName = req.params.name;
-    // ត្រងយកតែទំនិញណាដែលស្ថិតក្នុង Collection នោះ
     const filteredItems = itemsData.filter(item => item.CollectionName === collectionName);
     res.render('products', { collectionName, items: filteredItems });
 });
 
-// ទទួលការបញ្ជាទិញ
-app.post('/buy', (req, res) => {
-    const { title, salePrice, unitCost, qty } = req.body;
-    const totalPrice = salePrice * qty;
-    const totalCost = unitCost * qty;
+app.post('/checkout', (req, res) => {
+    const cartItems = JSON.parse(req.body.cartData || '[]');
+    if (cartItems.length === 0) return res.redirect('/');
 
-    db.run(`INSERT INTO orders (item_title, qty, total_price, cost_price) VALUES (?, ?, ?, ?)`,
-        [title, qty, totalPrice, totalCost], (err) => {
-            if (err) {
-                console.error(err);
-                return res.send("เกิดข้อผิดพลาดในการสั่งซื้อ");
-            }
-            res.redirect('/success');
-        });
+    const stmt = db.prepare(`INSERT INTO orders (item_title, qty, total_price, cost_price) VALUES (?, ?, ?, ?)`);
+    
+    cartItems.forEach(item => {
+        const totalPrice = item.salePrice * item.qty;
+        const totalCost = item.unitCost * item.qty;
+        stmt.run(item.title, item.qty, totalPrice, totalCost);
+    });
+    
+    stmt.finalize((err) => {
+        if (err) console.error(err);
+        res.render('success');
+    });
 });
 
-app.get('/success', (req, res) => {
-    res.send(`<h2 style="font-family:sans-serif; text-align:center; margin-top:50px;">🎉 ការបញ្ជាទិញរបស់អ្នកបានជោគជ័យ! <a href="/">ត្រឡប់ក្រោយទៅទំព័រដើម</a></h2>`);
-});
-
-// ៣. ទំព័រ Dashboard
 app.get('/admin/dashboard', (req, res) => {
     db.all(`SELECT * FROM orders ORDER BY order_date DESC`, [], (err, orders) => {
         if (err) {

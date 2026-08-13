@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <title>លទ្ធផលស្វែងរក</title>
+    <style>
+        body { font-family: 'Khmer OS Siemreap', sans-serif; background: #f4f7f6; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
+        .card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .price { color: #e74c3c; font-weight: bold; }
+        .back-link { display: inline-block; margin-bottom: 20px; text-decoration: none; color: #2980b9; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-link">⬅️ ត្រឡប់ទៅទំព័រដើម</a>
+    <h1>🔍 លទ្ធផលស្វែងរកសម្រាប់: "<%= search %>"</h1>
+    <div class="grid">
+        <% if(matchedItems.length === 0) { %>
+            <p>រកមិនឃើញទំនិញដែលអ្នកចង់រកទេ!</p>
+        <% } else { %>
+            <% matchedItems.forEach(item => { %>
+                <div class="card">
+                    <h3><%= item.TitleKhmer || item.TitleEnglish %></h3>
+                    <p class="price"><%= item.SalePrice %> <%= item.Currency %></p>
+                </div>
+            <% }) %>
+        <% } %>
+    </div>
+</body>
+</html>

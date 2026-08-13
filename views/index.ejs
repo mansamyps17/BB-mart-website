@@ -2,29 +2,38 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <title>ប្រភេទមុខទំនិញ (Collections)</title>
+    <title>BB Mart - Digital Menu</title>
     <style>
         body { font-family: 'Khmer OS Siemreap', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
         h1 { text-align: center; color: #333; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
-        .card { background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; transition: 0.3s; }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-        .card h2 { color: #2c3e50; font-size: 22px; margin-bottom: 15px; }
-        a.btn { background: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; }
-        a.btn:hover { background: #2980b9; }
+        .search-box { text-align: center; margin-bottom: 30px; }
+        .search-box input { padding: 10px; width: 300px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; }
+        .search-box button { padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .card { background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+        a.btn { background: #3498db; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; }
         .top-bar { text-align: right; max-width: 1000px; margin: 0 auto 20px auto; }
     </style>
 </head>
 <body>
-    <h1>📂 សូមជ្រើសរើសប្រភេទមុខទំនិញ (Collections)</h1>
+    <h1>🛒 BB Mart - បញ្ជីមុខទំនិញអនឡាញ</h1>
+    
     <div class="top-bar">
-        <a href="/admin/dashboard" target="_blank" style="background: #27ae60; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px;">📊 ចូលមើល Dashboard ចំណូល-ចំណាយ</a>
+        <a href="/admin/dashboard" target="_blank" style="background: #2c3e50; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px;">📊 Dashboard ចំណូល-ចំណាយ</a>
     </div>
+
+    <div class="search-box">
+        <form action="/" method="GET">
+            <input type="text" name="search" placeholder="ស្វែងរកឈ្មោះទំនិញ...">
+            <button type="submit">ស្វែងរក</button>
+        </form>
+    </div>
+
     <div class="grid">
         <% collections.forEach(col => { %>
             <div class="card">
                 <h2><%= col %></h2>
-                <a href="/collection/<%= encodeURIComponent(col) %>" class="btn">មើលទំនិញ ➔</a>
+                <a href="/collection/<%= encodeURIComponent(col) %>" class="btn">ចូលមើលទំនិញ ➔</a>
             </div>
         <% }) %>
     </div>

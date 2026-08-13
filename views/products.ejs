@@ -2,39 +2,90 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <title>ទំនិញក្នុងប្រភេទ <%= collectionName %></title>
+    <title><%= collectionName %></title>
     <style>
-        body { font-family: 'Khmer OS Siemreap', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
-        h1 { color: #333; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-        .card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        body { font-family: 'Khmer OS Siemreap', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; display: flex; gap: 20px; }
+        .main-content { flex: 3; }
+        .cart-sidebar { flex: 1; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); height: fit-content; position: sticky; top: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
+        .card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+        .card img { width: 100%; height: 140px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; background: #eee; }
         .price { color: #e74c3c; font-weight: bold; }
-        button { background: #27ae60; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; margin-top: 10px; }
-        button:hover { background: #219653; }
-        input[type="number"] { width: 50px; padding: 5px; }
+        button.add-btn { background: #27ae60; color: white; border: none; padding: 8px 12px; width: 100%; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+        .cart-item { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; font-size: 14px; }
+        .checkout-btn { background: #e67e22; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 15px; }
         .back-link { display: inline-block; margin-bottom: 20px; text-decoration: none; color: #2980b9; font-weight: bold; }
     </style>
 </head>
 <body>
-    <a href="/" class="back-link">⬅️ ត្រឡប់ក្រោយវិញ (គ្រប់ Collections)</a>
-    <h1>🛒 ប្រភេទ: <%= collectionName %></h1>
-    
-    <div class="grid">
-        <% items.forEach(item => { %>
-            <div class="card">
-                <h3><%= item.TitleKhmer || item.TitleEnglish %></h3>
-                <p>ស្តុកនៅសល់: <%= item.AvailableQty %></p>
-                <p class="price"><%= item.SalePrice %> <%= item.Currency %></p>
-                <form action="/buy" method="POST">
-                    <input type="hidden" name="title" value="<%= item.TitleKhmer || item.TitleEnglish %>">
-                    <input type="hidden" name="salePrice" value="<%= item.SalePrice %>">
-                    <input type="hidden" name="unitCost" value="<%= item.UnitCost %>">
-                    <label>ចំនួន: </label>
-                    <input type="number" name="qty" value="1" min="1" max="<%= item.AvailableQty %>">
-                    <button type="submit">ទិញឥឡូវនេះ</button>
-                </form>
-            </div>
-        <% }) %>
+
+    <div class="main-content">
+        <a href="/" class="back-link">⬅️ ត្រឡប់ក្រោយ</a>
+        <h1>📂 <%= collectionName %></h1>
+        <div class="grid">
+            <% items.forEach((item, index) => { 
+                let sampleImages = [
+                    "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400",
+                    "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400",
+                    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
+                    "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400",
+                    "https://images.unsplash.com/photo-1576426863848-c21f53c60b19?w=400"
+                ];
+                let imgUrl = sampleImages[index % sampleImages.length];
+            %>
+                <div class="card">
+                    <img src="<%= imgUrl %>" alt="Product Image">
+                    <h3><%= item.TitleKhmer || item.TitleEnglish %></h3>
+                    <p class="price"><%= item.SalePrice %> <%= item.Currency %></p>
+                    <button class="add-btn" onclick="addToCart('<%= item.TitleKhmer || item.TitleEnglish %>', <%= item.SalePrice %>, <%= item.UnitCost %>)">+ បញ្ចូលកន្ត្រក</button>
+                </div>
+            <% }) %>
+        </div>
     </div>
+
+    <div class="cart-sidebar">
+        <h3>🛒 កន្ត្រកទំនិញរបស់អ្នក</h3>
+        <div id="cart-items"></div>
+        <hr>
+        <h4>សរុបទឹកប្រាក់: <span id="cart-total">0</span> KHR</h4>
+        <form action="/checkout" method="POST" id="checkout-form">
+            <input type="hidden" name="cartData" id="cartData">
+            <button type="submit" class="checkout-btn">បញ្ជាក់ការបញ្ជាទិញ (Checkout)</button>
+        </form>
+    </div>
+
+    <script>
+        let cart = [];
+
+        function addToCart(title, salePrice, unitCost) {
+            let existing = cart.find(i => i.title === title);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({ title, salePrice, unitCost, qty: 1 });
+            }
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            let container = document.getElementById('cart-items');
+            let totalSpan = document.getElementById('cart-total');
+            container.innerHTML = '';
+            let total = 0;
+
+            cart.forEach((item) => {
+                total += item.salePrice * item.qty;
+                container.innerHTML += `
+                    <div class="cart-item">
+                        <span>${item.title} (x${item.qty})</span>
+                        <span>${(item.salePrice * item.qty).toLocaleString()} KHR</span>
+                    </div>
+                `;
+            });
+
+            totalSpan.innerText = total.toLocaleString();
+            document.getElementById('cartData').value = JSON.stringify(cart);
+        }
+    </script>
 </body>
 </html>
